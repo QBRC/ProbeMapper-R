@@ -1,10 +1,14 @@
 Package: etp
 Type: Package
-Title: What the package does (short line)
-Version: 1.0
+Title: Connects to QBRI's EntrezToProbe platform
+Version: 1.0.0
 Date: 2011-02-17
-Author: Who wrote it
-Maintainer: Who to complain to <yourfault@somewhere.net>
-Description: More about what it does (maybe more than one line)
-License: What license is it under?
+Author: Jeffrey D. Allen <Jeffrey.Allen@UTSouthwestern.edu>
+Maintainer: Jeffrey D. Allen <Jeffrey.Allen@UTSouthwestern.edu>
+Depends: R (>= 2.11.0), rjson
+Description: Connects to QBRI's EntrezToProbe engine system to handle
+    mappings between probes and genes and provide access to information
+    about probes and genes.
+License: GPL (>=2)
 LazyLoad: yes
+Collate: 'ETP.R'

@@ -13,7 +13,7 @@ We'll first need to setup our environment and establish a connection.
 
 <<setup>>=
 library(rjson);
-source("ETP.R");
+library(etp)
 conn <- etp.connect("http://qbridev.swmed.edu/etp/", "68BC9124A0A8BE32");
 @
 
