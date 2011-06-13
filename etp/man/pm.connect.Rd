@@ -1,7 +1,7 @@
-\name{etp.connect}
-\alias{etp.connect}
+\name{pm.connect}
+\alias{pm.connect}
 \title{Sets up a variable for the connection to the API.}
-\usage{etp.connect(url, key)}
+\usage{pm.connect(url, key)}
 \description{Sets up a variable for the connection to the API. You should pass such a connection variable to all future calls.}
 \value{a connection object representing the connection to the LCDB API based on the input you've provided.}
 \author{Jeffrey D. Allen \email{Jeffrey.Allen@UTSouthwestern.edu}}

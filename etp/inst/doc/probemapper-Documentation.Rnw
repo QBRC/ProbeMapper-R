@@ -4,7 +4,7 @@
 \usepackage{Sweave}
 \begin{document}
 
-\title{Entrez To Probe (ETP) Package}
+\title{probemapper (pm) Package}
 \author{Jeffrey D. Allen}
 
 \maketitle
@@ -12,21 +12,20 @@
 We'll first need to setup our environment and establish a connection.
 
 <<setup>>=
-library(rjson);
-library(etp)
-conn <- etp.connect("http://qbridev.swmed.edu/etp/", "68BC9124A0A8BE32");
+library(probemapper)
+conn <- pm.connect("http://qbrc.swmed.edu/ProbeMapper/");
 @
 
 \section{Getting Gene or Probe Information}
 
-The \verb/ETP/ package can be used to get information from the Entrez databse about a Gene, or to convert between Vendor probe annotations and our internal probeIDs.
+The \verb/probemapper/ package can be used to get information from the Entrez databse about a Gene, or to convert between Vendor probe annotations and our internal probeIDs.
 
 \subsection{Get Information on a Gene}
 
 To lookup information on a gene, you must specify the EntrezID of that gene.
 
 <<geneinfo>>=
-gene780 <- etp.getGene(conn, entrezID=780);
+gene780 <- pm.getGene(conn, entrezID=780);
 gene780;
 @
 
@@ -35,7 +34,7 @@ gene780;
 All functions that references a platform require that you reference the platform by its numerical ID. In order to lookup that ID, you can list out all the available platforms and find the one in which you're interested:
 
 <<listPlat>>=
-platforms <- etp.getPlatforms(conn);
+platforms <- pm.getPlatforms(conn);
 platforms
 @
 
@@ -44,14 +43,14 @@ platforms
 To lookup information on a probe, you can either specify the probe ID which we've created internally:
 
 <<probeinfoID>>=
-probe <- etp.getProbe(conn, probeID=1000008);
+probe <- pm.getProbe(conn, probeID=1000008);
 probe
 @
 
 Or you can reference it by its platform ID plus the name assigned to this probeset by  the vendor.
 
 <<probeinfoName>>=
-probe <- etp.getProbe(conn, platformID=1, probeName = "1007_s_at");
+probe <- pm.getProbe(conn, platformID=1, probeName = "1007_s_at");
 probe
 @
 
@@ -62,8 +61,8 @@ probe
 You can use this package to find out which genes are associated with a certain probe. To see all of the associations, you can reference the probe by its probeID, or by the platform ID + probe name as specified earlier:
 
 <<probeToGenes>>=
-genes <- etp.getGenesByProbe(conn, probeID=2043812);
-genes <- etp.getGenesByProbe(conn, platformID=2, probeName="234562_x_at");
+genes <- pm.getGenesByProbe(conn, probeID=2043812);
+genes <- pm.getGenesByProbe(conn, platformID=2, probeName="234562_x_at");
 genes
 @
 
@@ -72,7 +71,7 @@ You can also filter to a certain authority. ``Authority'' here means the source 
 So to find the genes associated with this probe according to the vendor and BLAST, you would run:
 
 <<>>=
-genes <- etp.getGenesByProbe(conn, probeID=2043812, authorityID=c(1,2));
+genes <- pm.getGenesByProbe(conn, probeID=2043812, authorityID=c(1,2));
 genes
 @
 
@@ -83,14 +82,14 @@ You'll notice that the ``Bioconductor'' column disappears, since we're not inter
 You can also specify a gene and find the relevant probes.
 
 <<geneToProbes>>=
-probes <- etp.getProbesByGene(conn, entrezID=780);
+probes <- pm.getProbesByGene(conn, entrezID=780);
 probes
 @
 
 Again you can filter by authority, but you can also filter by platform. To see only the probes associated with Affymetrix U133A (platform \#1), you would run:
 
 <<>>=
-probes <- etp.getProbesByGene(conn, entrezID=780, authorityID=2, platformID=1)$probes;
+probes <- pm.getProbesByGene(conn, entrezID=780, authorityID=2, platformID=1)$probes;
 probes
 @
 
@@ -99,13 +98,13 @@ probes
 You may notice some values of \verb/NA/ while mapping between genes and probes. This is because not all information is available from every authority. For instance, Agilent G4112F is not available on Bioconductor, and Illumina did not give an Entrez ID in their v1 platform. Thus you'll find results like:
 
 <<>>=
-etp.getProbesByGene(conn, 57188)$probes;
+pm.getProbesByGene(conn, 57188)$probes;
 @
 
 with rows such as:
 
 <<>>=
-etp.getProbesByGene(conn, 57188)$probes[6,];
+pm.getProbesByGene(conn, 57188)$probes[6,];
 @
 
 which produces an \verb/NA/ value for Bioconductor because that information is not available.
