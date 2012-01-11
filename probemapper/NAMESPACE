@@ -1,6 +1,2 @@
-export(pm.connect)
-export(pm.getPlatforms)
-export(pm.getGene)
-export(pm.getProbe)
-export(pm.getGenesByProbe)
-export(pm.getProbesByGene)
+export(listToXML)
+export(pm.lookupProbe)
