@@ -81,16 +81,16 @@ environment(newHand$result) <- environment(.SOAP)
 #' @author Jeffrey D. Allen \email{Jeffrey.Allen@@UTSouthwestern.edu}
 listToXML <- function(rootName="root", data=list()){
 	foo <- function(node, sublist){
-	    for(i in 1:length(sublist)){
-	        child <- newXMLNode(names(sublist)[i], parent=node);
-	
-	        if (typeof(sublist[[i]]) == "list"){
-	            foo(child, sublist[[i]])
-	        }
-	        else{
-	            xmlValue(child) <- sublist[[i]]
-	        }
-	    } 
+		for(i in 1:length(sublist)){
+			child <- newXMLNode(names(sublist)[i], parent=node);
+			
+			if (typeof(sublist[[i]]) == "list"){
+				foo(child, sublist[[i]])
+			}
+			else{
+				xmlValue(child) <- sublist[[i]]
+			}
+		} 
 	}
 	root <- newXMLNode(rootName)
 	foo(root, data)
@@ -109,7 +109,7 @@ pmcache <- list()
 #' @export
 #' @author Jeffrey D. Allen \email{Jeffrey.Allen@@UTSouthwestern.edu}
 pm.lookupProbe <- function (server, probeName, platform, probeID){
-		
+	
 	if (missing(probeID)){
 		if (missing(probeName) || missing(platform)){
 			stop("Must specify either the probeID(s) OR (the probeNames + platforms)")			
@@ -145,7 +145,7 @@ pm.lookupProbe <- function (server, probeName, platform, probeID){
 	action = paste("\"",thisAction,"#",method,"\"", sep="");
 	header = c(globalHeader, "SOAPAction"=action)
 	.opts = list(url=SSOAP:::toURL(server),
-						 httpheader = header)
+							 httpheader = header)
 	
 	maxPerRequest <- 5000;
 	pointer <- 1;
@@ -171,16 +171,16 @@ pm.lookupProbe <- function (server, probeName, platform, probeID){
 		
 		
 		soap <- customSOAP(server, post, method,
-	        action = thisAction, xmlns = "http://qbri.swmed.edu/LungCancer/", 
-	        .literal = FALSE, nameSpaces = "1.2", handlers=newHand,
-					.elementFormQualified = TRUE)
+											 action = thisAction, xmlns = "http://qbri.swmed.edu/LungCancer/", 
+											 .literal = FALSE, nameSpaces = "1.2", handlers=newHand,
+											 .elementFormQualified = TRUE)
 		
 		soap <- lapply(soap, function(x) {lapply(x, correctNil)})
 		
 		if (length(soap)){
 			soap <- data.frame(do.call(rbind, soap), row.names=NULL)			
 		}	
-			
+		
 		if (is.null(toReturn)){
 			toReturn <- soap;
 		}
@@ -207,7 +207,7 @@ pm.lookupProbe <- function (server, probeName, platform, probeID){
 		}
 		
 	}
-
+	
 	toReturn <- toReturn[!duplicated(toReturn),]
 	return(toReturn);	
 }
@@ -254,23 +254,29 @@ pm.getGene <- function(server, entrezID){
 #' @export
 #' @author Jeffrey D. Allen \email{Jeffrey.Allen@@UTSouthwestern.edu}
 pm.getGenesByProbe <- function(server, probeID, probeName, platformID){
-	#if only a single platform is specified, then repeat it for each probe.
-	if (length(platformID == 1)){
-		platformID <- rep(platformID, length(probeName))
+	
+	if (missing(probeID)){
+		if (missing(probeName) || missing(platformID)){
+			stop("Must specify either the probeID(s) OR (the probeNames + platforms)")			
+		}	
+		if (length(platformID) != 1 && length(platformID) != length(probeName)){
+			stop("Lengths of platformID and probeName must match.")
+		}
+		if (length(platformID) == 1){
+			platformID <- rep(platformID, length(probeName))
+		}		
+		# convert to probeID
+		#TODO: do this server-side 
+		probeID <- as.numeric(pm.lookupProbe(server, probeName=probeName, platform=platformID)$id)
+	}	
+	else{
+		if (!missing(probeName) || !missing(platformID)){
+			warning("probeID and probeName or platform was specified -- ignoring the platform and probeName and using only the probeIDs")
+		}			
 	}
-	
-	if (length(probeName) != length(platformID)){
-		stop("probeName and platformID have different lengths. You must ensure that each probe given has an associated platform ID.")
-	}
-	
-	#First convert to probeID
-	#TODO: do this server-side
-	#FIXME: do this conversion
-	
-	
 	
 	probeID <- formatSOAPParameter(probeID)
-		
+	
 	thisAction = "http://qbri.swmed.edu/ProbeMapper/GetGenesForProbe"
 	method <- "GetGenesForProbe"
 	
@@ -317,7 +323,7 @@ pm.getProbesByGene <- function(server, entrezID){
 	if (missing(entrezID)){
 		stop("You must specify an Entrez ID");
 	}
-
+	
 	entrezID <- formatSOAPParameter(entrezID)
 	
 	thisAction = "http://qbri.swmed.edu/ProbeMapper/GetProbesForGene"
@@ -388,7 +394,7 @@ pm.getPlatforms <- function(server){
 }
 
 
-		
+
 #' Clears the probemapper cache
 #' 
 #' Caching is not yet implemented in probemapper. Eventually, we plan to add client-side caching which will streamline the repetitive lookup of probes/genes to avoid the performance hit of having to make trips to the server for every probe/gene. 
@@ -398,69 +404,68 @@ flushCache <- function(){
 	pmcache <- list();
 }
 
-			
-		 					
+
+
 #' This is a modification of the .SOAP function available in the SSOAP package. At the time of writing, SSOAP couldn't properly handle the conversion of arguments into XML, so this function accepts a custom "body" element and statically defines much of the SOAP envelope, itself. This is less flexible, but gets the job done until the .SOAP function can be fixed to meet our needs.
 #' 
 #' @param server the SOAPServer object describing the location of the server to use
 #' @param body anything inside the body of the SOAP Request envelope
-	#' @return a list representing the SOAP values returned
+#' @return a list representing the SOAP values returned
 #' @author Jeffrey D. Allen \email{Jeffrey.Allen@@UTSouthwestern.edu}
 customSOAP <- function (server, body, method, ..., .soapArgs = list(), action, nameSpaces = SOAPNameSpaces(), 
-   	xmlns = NULL, handlers = SOAPHandlers(), .types = NULL, .convert = TRUE, 
-    .opts = list(), curlHandle = getCurlHandle(), .header = getSOAPRequestHeader(action, 
-        .server = server), .literal = FALSE, .soapHeader = NULL, 
-    .elementFormQualified = FALSE, .returnNodeName = NA) 
+												xmlns = NULL, handlers = SOAPHandlers(), .types = NULL, .convert = TRUE, 
+												.opts = list(), curlHandle = getCurlHandle(), .header = getSOAPRequestHeader(action, 
+																																																		 .server = server), .literal = FALSE, .soapHeader = NULL, 
+												.elementFormQualified = FALSE, .returnNodeName = NA) 
 {
-    
-		heading <- "<?xml version=\"1.0\"?> <SOAP-ENV:Envelope xmlns:SOAP-ENC=\"http://schemas.xmlsoap.org/soap/encoding/\" xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" SOAP-ENV:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\"> <SOAP-ENV:Body>"
-		footing <- "</SOAP-ENV:Body> </SOAP-ENV:Envelope>"										
-												
-		if (is.null(xmlns)) 
-        xmlns <- c(namesp1 = action)
-    if (!is(action, "AsIs")) {
-        if ((!is(action, c("SOAPAction")) || action == "") && 
-            !is.null(handlers) && "action" %in% names(handlers)) 
-            action <- handlers[["action"]](action, method, server, 
-                xmlns)
-    }
-    useNodes = TRUE
-    txt <- paste(heading,body,footing,sep="");
-    headerDataFun = basicTextGatherer()
-    bodyDataFun = basicTextGatherer()
-    if (is(server, "CURLHandle") && missing(curlHandle)) 
-        curlHandle = server
-    else .opts$url = toURL(server)
-    if (length(.header)) 
-        .opts$httpheader = .header
-    curlPerform(postfields = txt, writeFunction = bodyDataFun$update, 
-        headerFunction = headerDataFun$update, .opts = .opts, 
-        curl = curlHandle)
-    content = structure(list(header = RCurl:::parseHTTPHeader(headerDataFun$value(NULL)), 
-        content = bodyDataFun$value()), class = "SOAPHTTPReply")
-    if (isHTTPError(content$header) || isSOAPBodyError(content$content)) {
-        fault <- SOAPFault(parseSOAP(content$content, asText = TRUE))
-        e = simpleError(paste("Error occurred in the HTTP request: ", 
-            fault@message, xmlValue(fault@detail)))
-        httpError = RCurl:::getHTTPErrorClass(content$header[["status"]])
-        class(e) = c("SOAPError", httpError, class(e))
-        stop(e)
-        return(fault)
-    }
-    if (is.logical(.convert) && .convert && !is.null(handlers) && 
-        !is.na(match("result", names(handlers)))) 
-        handlers[["result"]](content$content, content$header, 
-            method)
-    else if (is.function(.convert)) 
-        return(if (inherits(.convert, "RawSOAPConverter")) .convert(content) else .convert(getReturnNode(content)))
-    else if (is(.convert, "GenericSchemaType")) 
-        convertFromSOAP(SOAPResult(content$content, content$header), 
-            .convert, nodeName = .returnNodeName)
-    else if (is.character(.convert)) 
-        as(getReturnNode(content), .convert)
-    else return(content)
+	
+	heading <- "<?xml version=\"1.0\"?> <SOAP-ENV:Envelope xmlns:SOAP-ENC=\"http://schemas.xmlsoap.org/soap/encoding/\" xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" SOAP-ENV:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\"> <SOAP-ENV:Body>"
+	footing <- "</SOAP-ENV:Body> </SOAP-ENV:Envelope>"										
+	
+	if (is.null(xmlns)) 
+		xmlns <- c(namesp1 = action)
+	if (!is(action, "AsIs")) {
+		if ((!is(action, c("SOAPAction")) || action == "") && 
+			!is.null(handlers) && "action" %in% names(handlers)) 
+			action <- handlers[["action"]](action, method, server, 
+																		 xmlns)
+	}
+	useNodes = TRUE
+	txt <- paste(heading,body,footing,sep="");
+	headerDataFun = basicTextGatherer()
+	bodyDataFun = basicTextGatherer()
+	if (is(server, "CURLHandle") && missing(curlHandle)) 
+		curlHandle = server
+	else .opts$url = toURL(server)
+	if (length(.header)) 
+		.opts$httpheader = .header
+	curlPerform(postfields = txt, writeFunction = bodyDataFun$update, 
+							headerFunction = headerDataFun$update, .opts = .opts, 
+							curl = curlHandle)
+	content = structure(list(header = RCurl:::parseHTTPHeader(headerDataFun$value(NULL)), 
+													 content = bodyDataFun$value()), class = "SOAPHTTPReply")
+	if (isHTTPError(content$header) || isSOAPBodyError(content$content)) {
+		fault <- SOAPFault(parseSOAP(content$content, asText = TRUE))
+		e = simpleError(paste("Error occurred in the HTTP request: ", 
+													fault@message, xmlValue(fault@detail)))
+		httpError = RCurl:::getHTTPErrorClass(content$header[["status"]])
+		class(e) = c("SOAPError", httpError, class(e))
+		stop(e)
+		return(fault)
+	}
+	if (is.logical(.convert) && .convert && !is.null(handlers) && 
+		!is.na(match("result", names(handlers)))) 
+		handlers[["result"]](content$content, content$header, 
+												 method)
+	else if (is.function(.convert)) 
+		return(if (inherits(.convert, "RawSOAPConverter")) .convert(content) else .convert(getReturnNode(content)))
+	else if (is(.convert, "GenericSchemaType")) 
+		convertFromSOAP(SOAPResult(content$content, content$header), 
+										.convert, nodeName = .returnNodeName)
+	else if (is.character(.convert)) 
+		as(getReturnNode(content), .convert)
+	else return(content)
 }		
 environment(customSOAP) <- environment(.SOAP)
 
 
- 
