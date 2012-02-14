@@ -108,23 +108,23 @@ pmcache <- list()
 #' @return a data.frame with the same data that was put in (possibly in a different order) annotated with the ProbeID as the rowname.
 #' @export
 #' @author Jeffrey D. Allen \email{Jeffrey.Allen@@UTSouthwestern.edu}
-pm.lookupProbe <- function (server, probeName, platform, probeID){
+pm.lookupProbe <- function (server, probeName, platformID, probeID){
 	
 	if (missing(probeID)){
-		if (missing(probeName) || missing(platform)){
+		if (missing(probeName) || missing(platformID)){
 			stop("Must specify either the probeID(s) OR (the probeNames + platforms)")			
 		}	
-		if (length(platform) != 1 && length(platform) != length(probeName)){
+		if (length(platformID) != 1 && length(platformID) != length(probeName)){
 			stop("Lengths of platform and probeName must match.")
 		}
-		if (length(platform) == 1){
-			platform <- rep(platform, length(probeName))
+		if (length(platformID) == 1){
+			platformID <- rep(platformID, length(probeName))
 		}		
 		mode <- "Name"		
 		probeCount <- length(probeName)
 	}	
 	else{
-		if (!missing(probeName) || !missing(platform)){
+		if (!missing(probeName) || !missing(platformID)){
 			warning("probeID and probeName or platform was specified -- ignoring the platform and probeName and using only the probeIDs")
 		}				
 		mode <- "ID"
@@ -162,7 +162,7 @@ pm.lookupProbe <- function (server, probeName, platform, probeID){
 			
 		}
 		else{
-			vals <- data.frame(probeName=probeName[pointer:min(pointer+maxPerRequest, length(probeName))], platforms=platforms[pointer:min(pointer+maxPerRequest, length(platforms))])			
+			vals <- data.frame(probeName=probeName[pointer:min(pointer+maxPerRequest, length(probeName))], platforms=platformID[pointer:min(pointer+maxPerRequest, length(platformID))])			
 			innerPost <- paste(apply(vals, 1, function(li) { names(li) <- c("Name", "platform"); listToXML("ProbeInfo",li) }), collapse="")
 			post <- paste("<ProbeInfo>",innerPost,"</ProbeInfo>", sep="");			
 		}
@@ -175,6 +175,7 @@ pm.lookupProbe <- function (server, probeName, platform, probeID){
 											 .literal = FALSE, nameSpaces = "1.2", handlers=newHand,
 											 .elementFormQualified = TRUE)
 		
+		soap[[1]][".attrs"] <- NULL
 		soap <- lapply(soap, function(x) {lapply(x, correctNil)})
 		
 		if (length(soap)){
@@ -228,17 +229,33 @@ pm.getGene <- function(server, entrezID){
 	if (length(entrezID) == 0){
 		stop ("You must specify at least one entrezID of the gene in which you're interested")
 	}
+		
+	entrezID <- formatSOAPParameter(entrezID)
 	
-	soap <- .SOAP(server, "GetGenes", entrezID=entrezID,
-								action = "http://qbri.swmed.edu/ProbeMapper/GetGenes", 
-								handlers=newHand, 
-								.literal = TRUE, nameSpaces = "1.2", 
-								.elementFormQualified = TRUE)
+	thisAction = "http://qbri.swmed.edu/ProbeMapper/GetGenes"
+	method <- "GetGenes"
 	
+	action = paste("\"",thisAction,"#",method,"\"", sep="");
+	header = c(lcdb:::globalHeader, "SOAPAction"=action)
+	.opts = list(url=SSOAP:::toURL(server),
+							 httpheader = header)
+	
+	post <- listToXML("entrezID", entrezID);
+	post <- paste("<",method,">",post,"</",method,">", sep="");
+
+
+	soap <- customSOAP(server, post, method,
+										 action = thisAction, xmlns = "http://qbri.swmed.edu/ProbeMapper/", 
+										 .literal = FALSE, nameSpaces = "1.2", handlers=newHand,
+										 .elementFormQualified = TRUE)
+	
+	soap[[1]][".attrs"] <- NULL
 	soap <- lapply(soap, function(x) {lapply(x, correctNil)})
-	
 	if (length(soap)){
-		soap <- data.frame(do.call(rbind, soap), row.names=1)
+		opt <- options("warn")
+		options("warn"=-1)
+		soap <- data.frame(do.call(rbind, soap))
+		options(opt)
 		return(soap)
 	}
 }
@@ -292,6 +309,7 @@ pm.getGenesByProbe <- function(server, probeID, probeName, platformID){
 										 .literal = FALSE, nameSpaces = "1.2", handlers=newHand,
 										 .elementFormQualified = TRUE)
 	
+	soap[[1]][".attrs"] <- NULL
 	soap <- lapply(soap, function(x) {lapply(x, correctNil)})
 	if (length(soap)){
 		opt <- options("warn")
@@ -336,6 +354,7 @@ pm.getProbesByGene <- function(server, entrezID){
 	
 	post <- listToXML(method, list(entrezID=entrezID));
 	
+	soap[[1]][".attrs"] <- NULL
 	soap <- customSOAP(server, post, method,
 										 action = thisAction, xmlns = "http://qbri.swmed.edu/ProbeMapper/", 
 										 .literal = FALSE, nameSpaces = "1.2", handlers=newHand,
@@ -375,6 +394,7 @@ pm.getPlatforms <- function(server){
 	
 	post <- paste("<",method," />", sep="");
 	
+	soap[[1]][".attrs"] <- NULL
 	soap <- customSOAP(server, post, method,
 										 action = thisAction, xmlns = "http://qbri.swmed.edu/ProbeMapper/", 
 										 .literal = FALSE, nameSpaces = "1.2", handlers=newHand,
