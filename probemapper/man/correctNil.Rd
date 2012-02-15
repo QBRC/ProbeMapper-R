@@ -1,6 +1,6 @@
 \name{correctNil}
 \alias{correctNil}
-\title{Parser to correct nil arguments in the returned XML. We want them to be NAs.}
+\title{Correct Nil SOAP values}
 \usage{
   correctNil(x)
 }

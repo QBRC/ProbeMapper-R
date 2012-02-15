@@ -4,7 +4,6 @@
 globalHeader <- c("Accept"="text/xml", "Accept"="multipart/*", "Content-Type"="text/xml; charset=utf-8")
 
 
-
 #' Correct Nil SOAP values
 #' 
 #' Parser to correct nil arguments in the returned XML. We want them to be NAs.
@@ -241,7 +240,7 @@ pm.getGene <- function(server, entrezID){
 	method <- "GetGenes"
 	
 	action = paste("\"",thisAction,"#",method,"\"", sep="");
-	header = c(lcdb:::globalHeader, "SOAPAction"=action)
+	header = c(globalHeader, "SOAPAction"=action)
 	.opts = list(url=SSOAP:::toURL(server),
 							 httpheader = header)
 	
@@ -304,7 +303,7 @@ pm.getGenesByProbe <- function(server, probeID, probeName, platformID){
 	method <- "GetGenesForProbe"
 	
 	action = paste("\"",thisAction,"#",method,"\"", sep="");
-	header = c(lcdb:::globalHeader, "SOAPAction"=action)
+	header = c(globalHeader, "SOAPAction"=action)
 	.opts = list(url=SSOAP:::toURL(server),
 							 httpheader = header)
 	
@@ -351,18 +350,19 @@ pm.getProbesByGene <- function(server, entrezID){
 	method <- "GetProbesForGene"
 	
 	action = paste("\"",thisAction,"#",method,"\"", sep="");
-	header = c(lcdb:::globalHeader, "SOAPAction"=action)
+	header = c(globalHeader, "SOAPAction"=action)
 	.opts = list(url=SSOAP:::toURL(server),
 							 httpheader = header)
 	
 	post <- listToXML(method, list(entrezID=entrezID));
 	
-	soap[[1]][".attrs"] <- NULL
+	
 	soap <- customSOAP(server, post, method,
 										 action = thisAction, xmlns = "http://qbri.swmed.edu/ProbeMapper/", 
 										 .literal = FALSE, nameSpaces = "1.2", handlers=newHand,
 										 .elementFormQualified = TRUE)
 	
+	soap[[1]][".attrs"] <- NULL
 	soap <- lapply(soap, function(x) {lapply(x, correctNil)})
 	if (length(soap)){
 		opt <- options("warn")
@@ -391,18 +391,18 @@ pm.getPlatforms <- function(server){
 	method <- "GetPlatforms"
 	
 	action = paste("\"",thisAction,"#",method,"\"", sep="");
-	header = c(lcdb:::globalHeader, "SOAPAction"=action)
+	header = c(globalHeader, "SOAPAction"=action)
 	.opts = list(url=SSOAP:::toURL(server),
 							 httpheader = header)
 	
 	post <- paste("<",method," />", sep="");
 	
-	soap[[1]][".attrs"] <- NULL
+	
 	soap <- customSOAP(server, post, method,
 										 action = thisAction, xmlns = "http://qbri.swmed.edu/ProbeMapper/", 
 										 .literal = FALSE, nameSpaces = "1.2", handlers=newHand,
 										 .elementFormQualified = TRUE)
-	
+	soap[[1]][".attrs"] <- NULL
 	soap <- lapply(soap, function(x) {lapply(x, correctNil)})
 	if (length(soap)){
 		opt <- options("warn")
