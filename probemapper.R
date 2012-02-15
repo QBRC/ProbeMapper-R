@@ -100,13 +100,18 @@ listToXML <- function(rootName="root", data=list()){
 
 pmcache <- list()
 
-#' Takes a data.frame of probes and looks up the IDs for each probe describes, returning a data.frame which is annotated with the probe ID.
-#' The order of the rows in the data.frame is NOT maintained.
+#' Convert between probe names and probe IDs.
+#'
+#' Takes a list of probes as specified either by probe ID or (probe name and platform ID) and returns the information on that probe (ID, name, and platform). Note that if you do not specify the probeID, then you must specify BOTH the probeName and platformID.
+#' The order of the rows in the returned data.frame is NOT the same as the input, nor is it necessarily consistent between calls.
 #'
 #' @param server the SOAPServer object describing the location of the server to use
-#FIXME: @param probes a data.frame containing the probe names and platform IDs of the probes of which you want to retrieve the IDs. The column names must be exactly ("Name" and "platform") in either order.
+#' @param probeID the ID of a probe (or a vector of such IDs) containing the internal IDs used by QBRC to identify a probe.
+#' @param probeName the vendor-given name of a probe (or a vector of such names)
+#' @param platformID specifies the ID(s) of the platforms which match the probe name. This must be specified if the probe name is given instead of the probe IDs. Must either be of length 1 (in which case it is assumed that all probe names are from the same platform), or the same length as the probeName vector.
 #' @return a data.frame with the same data that was put in (possibly in a different order) annotated with the ProbeID as the rowname.
 #' @export
+#' @seealso \code{\link{pm.getPlatforms}}
 #' @author Jeffrey D. Allen \email{Jeffrey.Allen@@UTSouthwestern.edu}
 pm.lookupProbe <- function (server, probeName, platformID, probeID){
 	
@@ -217,7 +222,7 @@ pm.lookupProbe <- function (server, probeName, platformID, probeID){
 #' 
 #' Retrieves information about the specified gene from the Entrez database.
 #' @param server the SOAPServer object describing the location of the server to use
-#' @param entrezID
+#' @param entrezID the entrezID of the gene you want to retrieve.
 #' @return Information about the selected genes from the Entrez Database.
 #' @export
 #' @author Jeffrey D. Allen \email{Jeffrey.Allen@@UTSouthwestern.edu}
@@ -262,13 +267,14 @@ pm.getGene <- function(server, entrezID){
 
 #' Get the genes associated with specified probes
 #' 
-#' Finds any gene associated with this probe according to any authority in the database. Note that you must specify either probeID and/or (probeName and platformID).
+#' Finds any gene associated with this probe according to any authority in the database. Note that you must specify either probeID or (probeName and platformID).
 #' @param server the SOAPServer object describing the location of the server to use
-#' @param probeID
-#' @param probeName
-#' @param platformID
+#' @param probeID the internal QBRC numeric identifier for a probe
+#' @param probeName the vendor-given name of the probe
+#' @param platformID the ID of the platform associated with this probe.
 #' @return a data.frame containing all of the gene associations for this probe and according to what authority.
 #' @export
+#' @seealso \code{\link{pm.getPlatforms}}
 #' @author Jeffrey D. Allen \email{Jeffrey.Allen@@UTSouthwestern.edu}
 pm.getGenesByProbe <- function(server, probeID, probeName, platformID){
 	
@@ -319,17 +325,14 @@ pm.getGenesByProbe <- function(server, probeID, probeName, platformID){
 		return(soap)
 	}
 	
-	return(NULL)
-	
-	
-	
+	return(NULL)	
 }
 
 #' Get the probes associated with specified genes
 #' 
 #' Finds any probes associated with this gene according to any authority in the database.
 #' @param server the SOAPServer object describing the location of the server to use
-#' @param entrezID
+#' @param entrezID the Entrez ID of the gene of interest
 #' @return A data.frame containing all of the probes associations for this gene and according to which authority.
 #' @export
 #' @author Jeffrey D. Allen \email{Jeffrey.Allen@@UTSouthwestern.edu}
