@@ -1,6 +1,0 @@
-export(listToXML)
-export(pm.getGene)
-export(pm.getGenesByProbe)
-export(pm.getPlatforms)
-export(pm.getProbesByGene)
-export(pm.lookupProbe)

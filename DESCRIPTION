@@ -1,19 +1,21 @@
 Package: probemapper
 Type: Package
 Title: Connects to QBRC's ProbeMapper platform
-Version: 2.1.0
-Date: 2012-02-15
+Version: 3.0.0
+Date: 2013-04-22
 Author: Jeffrey D. Allen <Jeffrey.Allen@UTSouthwestern.edu>
 Maintainer: Jeffrey D. Allen <Jeffrey.Allen@UTSouthwestern.edu>
-Depends:
-    R (>= 2.13.0),
-    XML (>= 3.7),
-    XMLSchema (>= 0.6),
-    SSOAP (>= 0.8)
+Imports:
+    RODProt (>= 0.1.3),
+    httr
 Description: Connects to QBRC's ProbeMapper system to handle
     mappings between probes and genes and provide access to information
     about probes and genes.
 License: GPL (>=2)
 LazyLoad: yes
 Collate:
-    'probemapper.R'
+    'onLoad.R'
+    'get-authority.R'
+    'get-etp.R'
+    'get-platform.R'
+    'get-probe.R'
