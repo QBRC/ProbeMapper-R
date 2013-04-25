@@ -1,2 +1,2 @@
 library(testthat)
-test_package("RODProt")
+test_package("probemapper")

@@ -1,6 +1,6 @@
 context("get_probe")
 
-source("../../setGetter.R")
+source("setGetter.R")
 
 test_that("Get Single Probe ID Works", {
 	pr <- get_probe(1000001)

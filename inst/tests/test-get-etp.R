@@ -1,6 +1,6 @@
 context("get_etp")
 
-source("../../setGetter.R")
+source("setGetter.R")
 
 test_that("Get ETP by probe works", {
 	etp <- get_etp(probe = 1000001)

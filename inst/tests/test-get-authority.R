@@ -1,6 +1,6 @@
 context("get_authority")
 
-source("../../setGetter.R")
+source("setGetter.R")
 
 test_that("Get Authority works", {
 	auth <- get_authority()

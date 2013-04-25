@@ -1,6 +1,6 @@
 context("get_platform")
 
-source("../../setGetter.R")
+source("setGetter.R")
 
 test_that("Get Platform works", {
 	plat <- get_platform()

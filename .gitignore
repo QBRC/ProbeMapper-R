@@ -1,4 +1,4 @@
 .Rproj.user
 .Rhistory
 .RData
-setGetter.R
+inst/tests/setGetter.R
