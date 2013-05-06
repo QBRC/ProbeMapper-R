@@ -6,12 +6,12 @@ Date: 2013-04-22
 Author: Jeffrey D. Allen <Jeffrey.Allen@UTSouthwestern.edu>
 Maintainer: Jeffrey D. Allen <Jeffrey.Allen@UTSouthwestern.edu>
 Imports:
-    RODProt (>= 0.1.3),
     httr
 Depends:
     methods,
     stats,
-    utils
+    utils,
+    RODProt (<= 0.1.3)
 Description: Connects to QBRC's ProbeMapper system to handle
     mappings between probes and genes and provide access to information
     about probes and genes.
